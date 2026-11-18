@@ -1,0 +1,464 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>BlushNotes - Aesthetic Pastel Notes & Dashboard</title>
+  <meta name="description" content="Aesthetic pastel notes app with dashboard statistics, favorites, pinned notes, recycle bin, search, filters, and local backup." />
+
+  <!-- Google Font: Plus Jakarta Sans -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+
+  <!-- App Stylesheet -->
+  <link rel="stylesheet" href="css/styles.css" />
+</head>
+<body>
+  <!-- Mobile Sidebar Backdrop -->
+  <div class="sidebar-backdrop" id="sidebarBackdrop"></div>
+
+  <div class="app-container">
+    <!-- LEFT SIDEBAR -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-brand">
+        <div class="brand-logo">
+          <div class="logo-icon">🌸</div>
+          <div class="brand-text">
+            <h1>BlushNotes</h1>
+            <span>Pastel Notebook</span>
+          </div>
+        </div>
+      </div>
+
+      <nav class="sidebar-nav" id="sidebarNav">
+        <div class="nav-section-title">Navigation</div>
+        
+        <button class="nav-item" data-view="dashboard">
+          <div class="nav-item-content">
+            <span class="nav-icon">📊</span>
+            <span>Dashboard</span>
+          </div>
+        </button>
+
+        <button class="nav-item active" data-view="all">
+          <div class="nav-item-content">
+            <span class="nav-icon">📝</span>
+            <span>All Notes</span>
+          </div>
+          <span class="nav-badge" id="badgeAll">0</span>
+        </button>
+
+        <button class="nav-item" data-view="pinned">
+          <div class="nav-item-content">
+            <span class="nav-icon">📌</span>
+            <span>Pinned</span>
+          </div>
+          <span class="nav-badge" id="badgePinned">0</span>
+        </button>
+
+        <button class="nav-item" data-view="favorites">
+          <div class="nav-item-content">
+            <span class="nav-icon">⭐</span>
+            <span>Favorites</span>
+          </div>
+          <span class="nav-badge" id="badgeFav">0</span>
+        </button>
+
+        <button class="nav-item" data-view="trash">
+          <div class="nav-item-content">
+            <span class="nav-icon">🗑️</span>
+            <span>Recycle Bin</span>
+          </div>
+          <span class="nav-badge" id="badgeTrash">0</span>
+        </button>
+
+        <div class="nav-section-title">Categories</div>
+        <div class="category-list" id="categoryList">
+          <!-- Populated dynamically -->
+        </div>
+
+        <button class="add-category-btn" id="newCategoryBtn">
+          <span>+</span>
+          <span>New Category</span>
+        </button>
+      </nav>
+
+      <!-- Sidebar Footer -->
+      <div class="sidebar-footer">
+        <div class="storage-status">
+          <div class="storage-header">
+            <span>LocalStorage</span>
+            <span id="storageUsageText">0 KB</span>
+          </div>
+          <div class="storage-bar-bg">
+            <div class="storage-bar-fill" id="storageBarFill"></div>
+          </div>
+        </div>
+
+        <div class="sidebar-controls">
+          <button class="control-btn" id="themeToggleBtn" title="Toggle Dark/Light Mode">
+            <span id="themeBtnIcon">🌙</span>
+            <span id="themeBtnText">Dark Mode</span>
+          </button>
+          <button class="control-btn" id="backupModalOpenBtn" title="Backup & Restore">
+            <span>💾</span>
+            <span>Backup</span>
+          </button>
+        </div>
+      </div>
+    </aside>
+
+    <!-- MAIN APP WRAPPER -->
+    <main class="main-wrapper">
+      <!-- Top Sticky Header -->
+      <header class="app-header">
+        <div class="header-left">
+          <button class="mobile-menu-btn" id="mobileMenuBtn" aria-label="Toggle navigation drawer">
+            ☰
+          </button>
+
+          <!-- Search Bar -->
+          <div class="search-container">
+            <span class="search-icon">🔍</span>
+            <input 
+              type="text" 
+              class="search-input" 
+              id="searchInput" 
+              placeholder="Search notes, tags, checklists... (Ctrl+K or /)" 
+              autocomplete="off"
+            />
+            <button class="search-clear-btn" id="searchClearBtn" title="Clear search">✕</button>
+          </div>
+        </div>
+
+        <!-- Top Header Action Controls -->
+        <div class="header-actions">
+          <!-- Font Size Adjustment -->
+          <div class="font-size-pills" title="Adjust Note Font Size">
+            <button class="font-size-btn" data-size="sm" title="Small font">A-</button>
+            <button class="font-size-btn active" data-size="md" title="Medium font">A</button>
+            <button class="font-size-btn" data-size="lg" title="Large font">A+</button>
+            <button class="font-size-btn" data-size="xl" title="Extra Large font">A++</button>
+          </div>
+
+          <!-- View Mode (Grid vs List) -->
+          <div class="icon-btn-group" title="Toggle Layout View">
+            <button class="icon-btn active" id="viewGridBtn" title="Grid View">
+              ⊞
+            </button>
+            <button class="icon-btn" id="viewListBtn" title="List View">
+              ☰
+            </button>
+          </div>
+
+          <!-- Create Note Button -->
+          <button class="primary-btn" id="newNoteBtn">
+            <span>+</span>
+            <span>New Note</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- Sub-header Filter Toolbar (Visible when in Notes view) -->
+      <section class="filter-toolbar" id="filterToolbar">
+        <div class="view-heading">
+          <h2 id="viewTitle">All Notes</h2>
+          <span class="view-count-badge" id="viewCountBadge">0 notes</span>
+        </div>
+
+        <div class="filters-wrapper">
+          <!-- 5 Pastel Color Filter Swatches -->
+          <div class="color-filters" title="Filter by Pastel Color">
+            <button class="color-filter-btn all active" data-color="all" title="All colors"></button>
+            <button class="color-filter-btn" data-color="rose" style="background-color: var(--pastel-rose-bg); border-color: var(--pastel-rose-border);" title="Blush Pink"></button>
+            <button class="color-filter-btn" data-color="lavender" style="background-color: var(--pastel-lavender-bg); border-color: var(--pastel-lavender-border);" title="Lavender"></button>
+            <button class="color-filter-btn" data-color="mint" style="background-color: var(--pastel-mint-bg); border-color: var(--pastel-mint-border);" title="Mint Green"></button>
+            <button class="color-filter-btn" data-color="peach" style="background-color: var(--pastel-peach-bg); border-color: var(--pastel-peach-border);" title="Peach Cream"></button>
+            <button class="color-filter-btn" data-color="sky" style="background-color: var(--pastel-sky-bg); border-color: var(--pastel-sky-border);" title="Sky Blue"></button>
+          </div>
+
+          <!-- Sorting Dropdown -->
+          <select class="filter-select" id="sortSelect" aria-label="Sort notes">
+            <option value="updated-desc">Recently Updated</option>
+            <option value="created-desc">Newest Created</option>
+            <option value="created-asc">Oldest Created</option>
+            <option value="title-asc">Title: A to Z</option>
+            <option value="title-desc">Title: Z to A</option>
+          </select>
+        </div>
+      </section>
+
+      <!-- Active Filters Display -->
+      <div class="active-filters-bar" id="activeFiltersBar"></div>
+
+      <!-- Content Area -->
+      <div class="content-area">
+        <!-- 1. DASHBOARD VIEW -->
+        <section id="dashboardView" style="display: none;">
+          <div class="dashboard-grid">
+            <!-- Welcome Banner -->
+            <div class="dashboard-welcome">
+              <div class="welcome-info">
+                <h3 id="dashboardGreeting">Welcome back!</h3>
+                <p>Here is the overview of your creative notes, ideas, and tasks.</p>
+              </div>
+              <div class="welcome-actions">
+                <button class="primary-btn" id="dashboardNewNoteBtn">
+                  <span>+</span>
+                  <span>Create Note</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- KPI Metric Cards -->
+            <div class="stats-cards-row">
+              <div class="stat-card" onclick="window.app.navigateTo('all')">
+                <div class="stat-icon-wrapper stat-icon-total">📝</div>
+                <div class="stat-content">
+                  <span class="stat-value" id="statTotalNotes">0</span>
+                  <span class="stat-label">Active Notes</span>
+                </div>
+              </div>
+
+              <div class="stat-card" onclick="window.app.navigateTo('pinned')">
+                <div class="stat-icon-wrapper stat-icon-pinned">📌</div>
+                <div class="stat-content">
+                  <span class="stat-value" id="statPinnedNotes">0</span>
+                  <span class="stat-label">Pinned Notes</span>
+                </div>
+              </div>
+
+              <div class="stat-card" onclick="window.app.navigateTo('favorites')">
+                <div class="stat-icon-wrapper stat-icon-fav">⭐</div>
+                <div class="stat-content">
+                  <span class="stat-value" id="statFavNotes">0</span>
+                  <span class="stat-label">Favorites</span>
+                </div>
+              </div>
+
+              <div class="stat-card" onclick="window.app.navigateTo('trash')">
+                <div class="stat-icon-wrapper stat-icon-trash">🗑️</div>
+                <div class="stat-content">
+                  <span class="stat-value" id="statTrashNotes">0</span>
+                  <span class="stat-label">Recycle Bin</span>
+                </div>
+              </div>
+
+              <div class="stat-card">
+                <div class="stat-icon-wrapper stat-icon-words">📖</div>
+                <div class="stat-content">
+                  <span class="stat-value" id="statTotalWords">0</span>
+                  <span class="stat-label">Total Words</span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Analytics Row: Categories & Pastel Palette Distribution -->
+            <div class="dashboard-analytics-row">
+              <div class="analytics-card">
+                <div class="analytics-card-header">
+                  <h4>📁 Category Distribution</h4>
+                </div>
+                <div class="category-stat-list" id="dashboardCategoryStats">
+                  <!-- Category progress bars injected dynamically -->
+                </div>
+              </div>
+
+              <div class="analytics-card">
+                <div class="analytics-card-header">
+                  <h4>🎨 Pastel Palette Usage</h4>
+                </div>
+                <div class="color-stat-grid" id="dashboardColorStats">
+                  <!-- 5 Pastel color usage cards -->
+                </div>
+              </div>
+            </div>
+
+            <!-- Recent Notes Section in Dashboard -->
+            <div class="recent-notes-preview">
+              <h3 class="section-subheading">Recently Modified Notes</h3>
+              <div id="dashboardRecentNotes"></div>
+            </div>
+          </div>
+        </section>
+
+        <!-- 2. NOTES VIEW (All, Pinned, Favorites, Trash, Category) -->
+        <section id="notesView">
+          <!-- Trash Warning Banner -->
+          <div class="trash-banner" id="trashBanner" style="display: none;">
+            <div>
+              <strong>Recycle Bin:</strong> Deleted notes remain here until restored or permanently cleared.
+            </div>
+            <div class="trash-banner-actions">
+              <button class="btn-secondary" id="restoreAllBtn" style="padding: 6px 14px; font-size: 0.82rem;">
+                ♻️ Restore All
+              </button>
+              <button class="btn-danger-outline" id="emptyTrashBtn">
+                🗑️ Empty Trash
+              </button>
+            </div>
+          </div>
+
+          <!-- Pinned Section -->
+          <div class="notes-section" id="pinnedSection" style="display: none;">
+            <div class="section-label">
+              <span>📌</span>
+              <span>Pinned Notes</span>
+            </div>
+            <div class="notes-container grid-view" id="pinnedNotesContainer"></div>
+          </div>
+
+          <!-- Other Notes Section -->
+          <div class="notes-section" id="otherSection">
+            <div class="section-label" id="otherSectionLabel" style="display: none;">
+              <span>📝</span>
+              <span>Other Notes</span>
+            </div>
+            <div class="notes-container grid-view" id="notesContainer"></div>
+          </div>
+
+          <!-- Empty State Container -->
+          <div class="empty-state" id="emptyState" style="display: none;">
+            <div class="empty-state-icon">🌸</div>
+            <h3 id="emptyStateTitle">No notes yet</h3>
+            <p id="emptyStateDesc">Create your first pastel note to capture your thoughts, recipes, or ideas.</p>
+            <button class="primary-btn" onclick="window.app.openNoteEditor()">
+              <span>+</span>
+              <span>Create First Note</span>
+            </button>
+          </div>
+        </section>
+      </div>
+    </main>
+  </div>
+
+  <!-- NOTE EDITOR MODAL -->
+  <div class="modal-backdrop" id="editorModal">
+    <div class="modal-window color-rose">
+      <div class="modal-header">
+        <h3 id="modalTitle">Create Note</h3>
+        <div class="modal-header-actions">
+          <button class="action-icon-btn" id="editorPinBtn" title="Pin note to top">📌</button>
+          <button class="action-icon-btn" id="editorFavBtn" title="Mark as favorite">⭐</button>
+          <button class="action-icon-btn" id="editorDeleteBtn" title="Delete note" style="display:none; color: var(--accent-trash);">🗑️</button>
+          <button class="modal-close-btn" id="closeEditorBtn" title="Close (Esc)">✕</button>
+        </div>
+      </div>
+
+      <div class="modal-body">
+        <!-- Title Input -->
+        <input 
+          type="text" 
+          class="editor-title-input" 
+          id="noteTitleInput" 
+          placeholder="Note Title..." 
+          autocomplete="off"
+        />
+
+        <!-- Meta Controls: Category & 5 Pastel Color Swatches -->
+        <div class="editor-meta-bar">
+          <select class="editor-category-select" id="noteCategorySelect" title="Select Category">
+            <!-- Options dynamically populated -->
+          </select>
+
+          <!-- 5 Signature Pastel Color Swatches -->
+          <div class="editor-color-picker">
+            <span class="color-swatch-label">Color:</span>
+            <button type="button" class="swatch-btn swatch-rose active" data-color="rose" title="Blush Pink"></button>
+            <button type="button" class="swatch-btn swatch-lavender" data-color="lavender" title="Lavender"></button>
+            <button type="button" class="swatch-btn swatch-mint" data-color="mint" title="Mint Green"></button>
+            <button type="button" class="swatch-btn swatch-peach" data-color="peach" title="Peach Cream"></button>
+            <button type="button" class="swatch-btn swatch-sky" data-color="sky" title="Sky Blue"></button>
+          </div>
+        </div>
+
+        <!-- Formatting Helpers Bar -->
+        <div class="editor-formatting-toolbar">
+          <button type="button" class="format-btn" data-format="bold" title="Bold"><b>B</b></button>
+          <button type="button" class="format-btn" data-format="italic" title="Italic"><i>I</i></button>
+          <button type="button" class="format-btn" data-format="strike" title="Strikethrough"><s>S</s></button>
+          <button type="button" class="format-btn" data-format="heading" title="Heading">H3</button>
+          <button type="button" class="format-btn" data-format="bullet" title="Bullet List">• List</button>
+          <button type="button" class="format-btn" data-format="task" title="Checklist Task">☑ Task</button>
+          <button type="button" class="format-btn" data-format="code" title="Code"><code>&lt;/&gt;</code></button>
+        </div>
+
+        <!-- Content Area -->
+        <textarea 
+          class="editor-textarea" 
+          id="noteContentInput" 
+          placeholder="Write your note here... Use [ ] for checklists, or formatting buttons above."
+        ></textarea>
+      </div>
+
+      <div class="modal-footer">
+        <div class="editor-stats-info">
+          <span id="editorWordCount">0 words</span>
+          <span>•</span>
+          <span id="editorCharCount">0 characters</span>
+        </div>
+
+        <div class="modal-footer-btns">
+          <button class="btn-secondary" id="cancelEditorBtn">Cancel</button>
+          <button class="primary-btn" id="saveNoteBtn">Save Note</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- BACKUP & EXPORT/IMPORT MODAL -->
+  <div class="modal-backdrop" id="backupModal">
+    <div class="modal-window" style="max-width: 540px;">
+      <div class="modal-header">
+        <h3>💾 Backup & Storage Management</h3>
+        <button class="modal-close-btn" id="closeBackupBtn">✕</button>
+      </div>
+
+      <div class="modal-body">
+        <div class="backup-section">
+          <!-- Export Card -->
+          <div class="backup-card">
+            <div class="backup-card-info">
+              <h5>Export JSON Backup</h5>
+              <p>Download all your notes, categories, and settings as a portable JSON file.</p>
+            </div>
+            <button class="primary-btn" id="exportJsonBtn" style="white-space: nowrap;">
+              ⬇ Export JSON
+            </button>
+          </div>
+
+          <!-- Import Drop Zone -->
+          <div class="drop-zone" id="dropZone">
+            <input type="file" id="importFileInput" accept=".json" style="display: none;" />
+            <div class="drop-zone-icon">📥</div>
+            <p><strong>Click to browse</strong> or drag & drop a backup JSON file here</p>
+            <span>Supports merging or replacing your notes</span>
+          </div>
+
+          <!-- Reset to sample data -->
+          <div class="backup-card">
+            <div class="backup-card-info">
+              <h5>Restore Demo Notes</h5>
+              <p>Reset and populate the app with aesthetic sample notes.</p>
+            </div>
+            <button class="btn-secondary" id="resetSampleBtn">
+              🔄 Reset Demo
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <div class="modal-footer" style="justify-content: flex-end;">
+        <button class="btn-secondary" onclick="window.app.closeBackupModal()">Done</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- TOAST NOTIFICATION CONTAINER -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- App Script -->
+  <script src="js/app.js"></script>
+</body>
+</html>
